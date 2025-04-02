@@ -87,6 +87,9 @@ test_pytest_models() { # Test ops and other things
     # Prepare for pytest
     backends/arm/scripts/build_executorch.sh
 
+    # Install model dependencies for pytest
+    source backends/arm/scripts/install_models_for_test.sh
+
     # Run arm baremetal pytest tests without FVP
     pytest  --verbose --color=yes backends/arm/test/models
     echo "${TEST_SUITE_NAME}: PASS"
@@ -121,6 +124,9 @@ test_pytest_models_ethosu_fvp() { # Same as test_pytest but also sometime verify
     backends/arm/scripts/build_portable_kernels.sh
     # Build semihosting version of the runner used by pytest testing
     backends/arm/test/setup_testing.sh
+
+    # Install model dependencies for pytest
+    source backends/arm/scripts/install_models_for_test.sh
 
     # Run arm baremetal pytest tests with FVP
     pytest  --verbose --color=yes backends/arm/test/models
