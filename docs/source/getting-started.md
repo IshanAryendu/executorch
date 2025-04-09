@@ -86,7 +86,17 @@ runtime = Runtime.get()
 input_tensor: torch.Tensor = torch.randn(1, 3, 224, 224)
 program = runtime.load_program("model.pte")
 method = program.load_method("forward")
-outputs: List[torch.Tensor] = method.execute([input_tensor])
+output: List[torch.Tensor] = method.execute([input_tensor])
+print("Run succesfully via executorch")
+
+from torchvision.models.mobilenetv2 import MobileNet_V2_Weights
+import torchvision.models as models
+
+eager_reference_model = models.mobilenetv2.mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT).eval()
+eager_reference_output = eager_reference_model(input_tensor)
+
+print("Comparing against original PyTorch module")
+print(torch.allclose(output[0], eager_reference_output, rtol=1e-3, atol=1e-5))
 ```
 
 
@@ -137,7 +147,7 @@ For a full example of running a model on Android, see the [DeepLabV3AndroidDemo]
 #### Installation
 ExecuTorch supports both iOS and MacOS via C++, as well as hardware backends for CoreML, MPS, and CPU. The iOS runtime library is provided as a collection of .xcframework targets and are made available as a Swift PM package.
 
-To get started with Xcode, go to File > Add Package Dependencies. Paste the URL of the ExecuTorch repo into the search bar and select it. Make sure to change the branch name to the desired ExecuTorch version in format “swiftpm-”, (e.g. “swiftpm-0.5.0”).  The ExecuTorch dependency can also be added to the package file manually. See [Using ExecuTorch on iOS](using-executorch-ios.md) for more information.
+To get started with Xcode, go to File > Add Package Dependencies. Paste the URL of the ExecuTorch repo into the search bar and select it. Make sure to change the branch name to the desired ExecuTorch version in format “swiftpm-”, (e.g. “swiftpm-0.6.0”).  The ExecuTorch dependency can also be added to the package file manually. See [Using ExecuTorch on iOS](using-executorch-ios.md) for more information.
 
 #### Runtime APIs
 Models can be loaded and run from Objective-C using the C++ APIs.
@@ -151,7 +161,7 @@ ExecuTorch provides C++ APIs, which can be used to target embedded or mobile dev
 CMake is the preferred build system for the ExecuTorch C++ runtime. To use with CMake, clone the ExecuTorch repository as a subdirectory of your project, and use CMake's `add_subdirectory("executorch")` to include the dependency. The `executorch` target, as well as kernel and backend targets will be made available to link against. The runtime can also be built standalone to support diverse toolchains. See [Using ExecuTorch with C++](using-executorch-cpp.md) for a detailed description of build integration, targets, and cross compilation.
 
 ```
-git clone -b release/0.5 https://github.com/pytorch/executorch.git
+git clone -b viable/strict https://github.com/pytorch/executorch.git
 ```
 ```python
 # CMakeLists.txt
@@ -160,8 +170,8 @@ add_subdirectory("executorch")
 target_link_libraries(
   my_target
   PRIVATE executorch
-          executorch_module_static
-          executorch_tensor
+          extension_module_static
+          extension_tensor
           optimized_native_cpu_ops_lib
           xnnpack_backend)
 ```

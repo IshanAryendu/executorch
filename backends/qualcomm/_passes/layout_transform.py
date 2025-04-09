@@ -47,6 +47,7 @@ class LayoutTransform(ExportPass):
     layout_agnostic_ops = {
         exir_ops.edge.aten.abs.default,
         exir_ops.edge.aten.add.Tensor,
+        exir_ops.edge.aten.amax.default,
         exir_ops.edge.aten.bitwise_or.Tensor,
         exir_ops.edge.aten.bmm.default,
         exir_ops.edge.aten.bitwise_and.Tensor,
@@ -87,6 +88,7 @@ class LayoutTransform(ExportPass):
         exir_ops.edge.aten._softmax.default,  # TODO: Need to find a new solution to do "axis_order" to transform axis.
         exir_ops.edge.aten.sigmoid.default,
         exir_ops.edge.aten.split_with_sizes.default,
+        exir_ops.edge.aten.split_with_sizes_copy.default,
         exir_ops.edge.aten.sqrt.default,
         exir_ops.edge.aten.sub.Tensor,
         exir_ops.edge.aten.sum.dim_IntList,
