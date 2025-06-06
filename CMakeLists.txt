@@ -65,6 +65,11 @@ if(NOT CMAKE_SYSTEM_PROCESSOR)
 endif()
 announce_configured_options(CMAKE_SYSTEM_PROCESSOR)
 
+if(NOT CMAKE_SYSTEM_NAME)
+  set(CMAKE_SYSTEM_NAME ${CMAKE_HOST_SYSTEM_NAME})
+endif()
+announce_configured_options(CMAKE_SYSTEM_NAME)
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
@@ -75,11 +80,12 @@ if(NOT PYTHON_EXECUTABLE)
 endif()
 announce_configured_options(PYTHON_EXECUTABLE)
 
-announce_configured_options(CMAKE_CXX_COMPILER_ID)
-announce_configured_options(CMAKE_TOOLCHAIN_FILE)
+if(NOT BUCK2)
+  resolve_buck2()
+endif()
 announce_configured_options(BUCK2)
 
-load_build_preset()
+load_executorch_build_preset_file()
 include(${PROJECT_SOURCE_DIR}/tools/cmake/preset/default.cmake)
 
 # Print all the configs that were called with announce_configured_options.
@@ -148,119 +154,49 @@ else()
 endif()
 
 if(EXECUTORCH_BUILD_TESTS)
-  set(EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR ON)
   include(CTest)
 endif()
 
 add_subdirectory(third-party)
 
-if(EXECUTORCH_BUILD_EXTENSION_TRAINING)
-  set(EXECUTORCH_BUILD_EXTENSION_DATA_LOADER ON)
-  set(EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR ON)
-  set(EXECUTORCH_BUILD_EXTENSION_MODULE ON)
-  set(EXECUTORCH_BUILD_EXTENSION_TENSOR ON)
-endif()
-
-if(EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR)
-  set(EXECUTORCH_BUILD_EXTENSION_DATA_LOADER ON)
-endif()
-
-if(EXECUTORCH_BUILD_EXTENSION_MODULE)
-  set(EXECUTORCH_BUILD_EXTENSION_DATA_LOADER ON)
-  set(EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR ON)
-endif()
-
-if(EXECUTORCH_BUILD_KERNELS_CUSTOM_AOT)
-  set(EXECUTORCH_BUILD_EXTENSION_TENSOR ON)
-  set(EXECUTORCH_BUILD_KERNELS_CUSTOM ON)
-endif()
-
-if(EXECUTORCH_BUILD_KERNELS_CUSTOM)
-  set(EXECUTORCH_BUILD_KERNELS_OPTIMIZED ON)
-endif()
-
 if(NOT DEFINED FXDIV_SOURCE_DIR)
-  set(ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG
-      ${CMAKE_POSITION_INDEPENDENT_CODE}
-  )
-  set(FXDIV_SOURCE_DIR "backends/xnnpack/third-party/FXdiv")
+  set(ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG ${CMAKE_POSITION_INDEPENDENT_CODE})
+  set(FXDIV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/backends/xnnpack/third-party/FXdiv")
   add_subdirectory("${FXDIV_SOURCE_DIR}")
-  set(CMAKE_POSITION_INDEPENDENT_CODE
-      ${ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG}
-  )
+  set(CMAKE_POSITION_INDEPENDENT_CODE ${ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG})
 endif()
 
 if(EXECUTORCH_BUILD_CPUINFO)
-  # --- cpuinfo
-  set(ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG
-      ${CMAKE_POSITION_INDEPENDENT_CODE}
-  )
+  set(ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG ${CMAKE_POSITION_INDEPENDENT_CODE})
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-  set(CPUINFO_SOURCE_DIR "backends/xnnpack/third-party/cpuinfo")
-  set(CPUINFO_BUILD_TOOLS
-      OFF
-      CACHE BOOL ""
-  )
-  set(CPUINFO_BUILD_UNIT_TESTS
-      OFF
-      CACHE BOOL ""
-  )
-  set(CPUINFO_BUILD_MOCK_TESTS
-      OFF
-      CACHE BOOL ""
-  )
-  set(CPUINFO_BUILD_BENCHMARKS
-      OFF
-      CACHE BOOL ""
-  )
-  set(CPUINFO_LIBRARY_TYPE
-      "static"
-      CACHE STRING ""
-  )
-  set(CPUINFO_LOG_LEVEL
-      "error"
-      CACHE STRING ""
-  )
+  set(CPUINFO_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/backends/xnnpack/third-party/cpuinfo")
+  set(CPUINFO_BUILD_TOOLS OFF CACHE BOOL "")
+  set(CPUINFO_BUILD_UNIT_TESTS OFF CACHE BOOL "")
+  set(CPUINFO_BUILD_MOCK_TESTS OFF CACHE BOOL "")
+  set(CPUINFO_BUILD_BENCHMARKS OFF CACHE BOOL "")
+  set(CPUINFO_LIBRARY_TYPE "static" CACHE STRING "")
+  set(CPUINFO_LOG_LEVEL "error" CACHE STRING "")
   set(CLOG_SOURCE_DIR "${CPUINFO_SOURCE_DIR}/deps/clog")
   add_subdirectory("${CPUINFO_SOURCE_DIR}")
-  set(CMAKE_POSITION_INDEPENDENT_CODE
-      ${ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG}
-  )
+  set(CMAKE_POSITION_INDEPENDENT_CODE ${ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG})
 endif()
 
 if(EXECUTORCH_BUILD_PTHREADPOOL)
-  # --- pthreadpool
-  set(ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG
-      ${CMAKE_POSITION_INDEPENDENT_CODE}
-  )
+  set(ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG ${CMAKE_POSITION_INDEPENDENT_CODE})
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-  set(PTHREADPOOL_SOURCE_DIR "backends/xnnpack/third-party/pthreadpool")
-  set(PTHREADPOOL_BUILD_TESTS
-      OFF
-      CACHE BOOL ""
-  )
-  set(PTHREADPOOL_BUILD_BENCHMARKS
-      OFF
-      CACHE BOOL ""
-  )
-  set(PTHREADPOOL_LIBRARY_TYPE
-      "static"
-      CACHE STRING ""
-  )
-  set(PTHREADPOOL_ALLOW_DEPRECATED_API
-      ON
-      CACHE BOOL ""
-  )
+  set(PTHREADPOOL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/backends/xnnpack/third-party/pthreadpool")
+  set(PTHREADPOOL_BUILD_TESTS OFF CACHE BOOL "")
+  set(PTHREADPOOL_BUILD_BENCHMARKS OFF CACHE BOOL "")
+  set(PTHREADPOOL_LIBRARY_TYPE "static" CACHE STRING "")
+  set(PTHREADPOOL_ALLOW_DEPRECATED_API ON CACHE BOOL "")
   if(APPLE)
-    set(PTHREADPOOL_SYNC_PRIMITIVE
-        "condvar"
-        CACHE STRING ""
-    )
+    if(NOT DEFINED CMAKE_THREAD_LIBS_INIT)
+      set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+    endif()
+    set(PTHREADPOOL_SYNC_PRIMITIVE "condvar" CACHE STRING "")
   endif()
   add_subdirectory("${PTHREADPOOL_SOURCE_DIR}")
-  set(CMAKE_POSITION_INDEPENDENT_CODE
-      ${ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG}
-  )
+  set(CMAKE_POSITION_INDEPENDENT_CODE ${ORIGINAL_CMAKE_POSITION_INDEPENDENT_CODE_FLAG})
 endif()
 
 # TODO(dbort): Fix these warnings and remove this flag.
@@ -290,9 +226,6 @@ set(_common_include_directories
 #
 
 if(NOT EXECUTORCH_SRCS_FILE)
-  # Find or download buck2 binary.
-  resolve_buck2()
-
   # A file wasn't provided. Run a script to extract the source lists from the
   # buck2 build system and write them to a file we can include.
   #
@@ -307,23 +240,6 @@ endif()
 message(STATUS "executorch: Using sources file ${EXECUTORCH_SRCS_FILE}")
 include(${EXECUTORCH_SRCS_FILE})
 
-# Detect if an iOS toolchain is set.
-if(CMAKE_TOOLCHAIN_FILE MATCHES ".*(iOS|ios\.toolchain)\.cmake$")
-  set(CMAKE_TOOLCHAIN_IOS ON)
-else()
-  set(CMAKE_TOOLCHAIN_IOS OFF)
-endif()
-
-# Detect if an Android toolchain is set.
-if(CMAKE_TOOLCHAIN_FILE MATCHES ".*android\.toolchain\.cmake$")
-  set(CMAKE_TOOLCHAIN_ANDROID ON)
-  if(NOT ANDROID_PLATFORM)
-    set(ANDROID_PLATFORM android-30)
-  endif()
-else()
-  set(CMAKE_TOOLCHAIN_ANDROID OFF)
-endif()
-
 # Add code coverage flags to supported compilers
 if(EXECUTORCH_USE_CPP_CODE_COVERAGE)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -335,7 +251,7 @@ if(EXECUTORCH_USE_CPP_CODE_COVERAGE)
            " -fprofile-instr-generate -fcoverage-mapping"
     )
   else()
-    message(ERROR
+    message(FATAL_ERROR
             "Code coverage for compiler ${CMAKE_CXX_COMPILER_ID} is unsupported"
     )
   endif()
@@ -455,14 +371,6 @@ endif()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/configurations)
 
-#
-# gflags: Commandline flag host library.
-#
-
-if(EXECUTORCH_BUILD_GFLAGS)
-  add_subdirectory(third-party/gflags)
-endif()
-
 # Install `executorch` library as well as `executorch-config.cmake` under
 # ${CMAKE_INSTALL_PREFIX}/
 install(
@@ -547,17 +455,6 @@ if(EXECUTORCH_BUILD_CORTEX_M)
 endif()
 
 if(EXECUTORCH_BUILD_DEVTOOLS)
-  if(NOT EXECUTORCH_BUILD_ARM_BAREMETAL)
-    set(EXECUTORCH_BUILD_EXTENSION_DATA_LOADER
-        ON
-        CACHE BOOL "EXECUTORCH_BUILD_EXTENSION_DATA_LOADER" FORCE
-    )
-  else()
-    set(EXECUTORCH_BUILD_EXTENSION_DATA_LOADER
-        OFF
-        CACHE BOOL "EXECUTORCH_BUILD_EXTENSION_DATA_LOADER" FORCE
-    )
-  endif()
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/devtools)
 endif()
 

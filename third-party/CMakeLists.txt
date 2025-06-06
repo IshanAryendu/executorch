@@ -6,6 +6,9 @@
 
 add_subdirectory(json)
 
+set(GFLAGS_INTTYPES_FORMAT C99)
+add_subdirectory(gflags)
+
 if(EXECUTORCH_BUILD_PYBIND)
   add_subdirectory(pybind11)
 endif()

@@ -100,6 +100,11 @@ define_overridable_option(
   BOOL OFF
 )
 define_overridable_option(
+  EXECUTORCH_BUILD_EXTENSION_MODULE_AS_STATIC
+  "Build the Module extension as a static library"
+  BOOL OFF
+)
+define_overridable_option(
   EXECUTORCH_BUILD_EXTENSION_RUNNER_UTIL
   "Build the Runner Util extension"
   BOOL OFF
@@ -210,47 +215,30 @@ define_overridable_option(
   BOOL OFF
 )
 define_overridable_option(
+  EXECUTORCH_COREML_BUILD_EXECUTOR_RUNNER
+  "Build CoreML executor runner."
+  BOOL OFF
+)
+define_overridable_option(
   EXECUTORCH_BUILD_GFLAGS
   "Build the gflags library."
   BOOL ON
 )
 define_overridable_option(
-  EXECUTORCH_COREML_BUILD_EXECUTOR_RUNNER
-  "Build CoreML executor runner."
-  BOOL OFF
-)
-
-if(EXECUTORCH_BUILD_ARM_BAREMETAL)
-  set(_default_executorch_build_pthreadpool OFF)
-  set(_default_executorch_build_cpuinfo OFF)
-else()
-  set(_default_executorch_build_pthreadpool ON)
-  set(_default_executorch_build_cpuinfo ON)
-endif()
-define_overridable_option(
   EXECUTORCH_BUILD_PTHREADPOOL
   "Build pthreadpool library."
-  BOOL ${_default_executorch_build_pthreadpool}
+  BOOL ON
 )
 define_overridable_option(
   EXECUTORCH_BUILD_CPUINFO
   "Build cpuinfo library."
-  BOOL ${_default_executorch_build_cpuinfo}
+  BOOL ON
 )
-
-# TODO(jathu): move this to platform specific presets when created
-set(_default_executorch_build_executor_runner ON)
-if(APPLE AND "${SDK_NAME}" STREQUAL "iphoneos")
-  set(_default_executorch_build_executor_runner OFF)
-elseif(DEFINED EXECUTORCH_BUILD_PRESET_FILE)
-  set(_default_executorch_build_executor_runner OFF)
-endif()
 define_overridable_option(
   EXECUTORCH_BUILD_EXECUTOR_RUNNER
   "Build the executor_runner executable"
-  BOOL ${_default_executorch_build_executor_runner}
+  BOOL OFF
 )
-
 # NB: Enabling this will serialize execution of delegate instances Keeping this
 # OFF by default to maintain existing behavior, to be revisited.
 define_overridable_option(
@@ -276,14 +264,89 @@ define_overridable_option(
   "Enable weights cache to cache and manage all packed weights"
   BOOL OFF
 )
+define_overridable_option(
+  EXECUTORCH_USE_CPP_CODE_COVERAGE
+  "Build with code coverage enabled"
+  BOOL OFF
+)
 
-# MARK: - Validations
-# At this point all the options should be configured with their final value.
+# ------------------------------------------------------------------------------
+# Validations - at this point all the options should be configured with their final value.
+# ------------------------------------------------------------------------------
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_ENABLE_EVENT_TRACER
+  REQUIRES
+    EXECUTORCH_BUILD_DEVTOOLS
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_DATA_LOADER
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_EXTENSION_MODULE
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_DATA_LOADER
+    EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_KERNELS_CUSTOM
+  REQUIRES
+    EXECUTORCH_BUILD_KERNELS_OPTIMIZED
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_KERNELS_CUSTOM_AOT
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_TENSOR
+    EXECUTORCH_BUILD_KERNELS_CUSTOM
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_EXTENSION_TRAINING
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_DATA_LOADER
+    EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR
+    EXECUTORCH_BUILD_EXTENSION_MODULE
+    EXECUTORCH_BUILD_EXTENSION_TENSOR
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_TESTS
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_EXTENSION_MODULE_AS_STATIC
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_MODULE
+)
+
+check_conflicting_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_ARM_BAREMETAL
+  CONFLICTS_WITH
+    EXECUTORCH_BUILD_PTHREADPOOL
+    EXECUTORCH_BUILD_CPUINFO
+    EXECUTORCH_BUILD_EXTENSION_DATA_LOADER
+)
 
 if(NOT EXISTS ${EXECUTORCH_PAL_DEFAULT_FILE_PATH})
   message(FATAL_ERROR "PAL default implementation (EXECUTORCH_PAL_DEFAULT=${EXECUTORCH_PAL_DEFAULT}) file not found: ${EXECUTORCH_PAL_DEFAULT_FILE_PATH}. Choices: posix, minimal, android")
 endif()
-
 
 string(TOLOWER "${EXECUTORCH_LOG_LEVEL}" _executorch_log_level_lower)
 if(_executorch_log_level_lower STREQUAL "debug")
@@ -296,20 +359,4 @@ elseif(_executorch_log_level_lower STREQUAL "fatal")
   set(ET_MIN_LOG_LEVEL Fatal)
 else()
   message(FATAL_ERROR "Unknown EXECUTORCH_LOG_LEVEL '${EXECUTORCH_LOG_LEVEL}'. Choices: Debug, Info, Error, Fatal")
-endif()
-
-
-if(EXECUTORCH_ENABLE_EVENT_TRACER)
-  if(NOT EXECUTORCH_BUILD_DEVTOOLS)
-    message(FATAL_ERROR "Use of 'EXECUTORCH_ENABLE_EVENT_TRACER' requires 'EXECUTORCH_BUILD_DEVTOOLS' to be enabled.")
-  endif()
-endif()
-
-
-if(EXECUTORCH_BUILD_ARM_BAREMETAL)
-  if(EXECUTORCH_BUILD_PTHREADPOOL)
-    message(FATAL_ERROR "Cannot enable both EXECUTORCH_BUILD_PTHREADPOOL and EXECUTORCH_BUILD_ARM_BAREMETAL")
-  elseif(EXECUTORCH_BUILD_CPUINFO)
-    message(FATAL_ERROR "Cannot enable both EXECUTORCH_BUILD_CPUINFO and EXECUTORCH_BUILD_ARM_BAREMETAL")
-  endif()
 endif()

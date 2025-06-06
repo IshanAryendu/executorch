@@ -95,12 +95,61 @@ macro(set_overridable_option NAME VALUE)
 endmacro()
 
 # Detemine the build preset and load it.
-macro(load_build_preset)
+macro(load_executorch_build_preset_file)
+  # If EXECUTORCH_BUILD_PRESET_FILE is not set, then try to infer it.
+  if(NOT DEFINED EXECUTORCH_BUILD_PRESET_FILE)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set(EXECUTORCH_BUILD_PRESET_FILE "${PROJECT_SOURCE_DIR}/tools/cmake/preset/macos.cmake")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+      set(EXECUTORCH_BUILD_PRESET_FILE "${PROJECT_SOURCE_DIR}/tools/cmake/preset/ios.cmake")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+      set(EXECUTORCH_BUILD_PRESET_FILE "${PROJECT_SOURCE_DIR}/tools/cmake/preset/linux.cmake")
+    else()
+      message(WARNING "Unknown CMAKE_SYSTEM_NAME, unable to determine EXECUTORCH_BUILD_PRESET_FILE")
+    endif()
+  endif()
+
   if(DEFINED EXECUTORCH_BUILD_PRESET_FILE)
     announce_configured_options(EXECUTORCH_BUILD_PRESET_FILE)
     message(STATUS "Loading build preset: ${EXECUTORCH_BUILD_PRESET_FILE}")
     include(${EXECUTORCH_BUILD_PRESET_FILE})
   endif()
-  # For now, just continue if the preset file is not set. In the future, we will
-  # try to determine a preset file.
 endmacro()
+
+# Check if the required options are set.
+function(check_required_options_on)
+  cmake_parse_arguments(
+    ARG
+    ""
+    "IF_ON"
+    "REQUIRES"
+    ${ARGN}
+  )
+
+  if(${${ARG_IF_ON}})
+    foreach(required ${ARG_REQUIRES})
+      if(NOT ${${required}})
+        message(FATAL_ERROR "Use of '${ARG_IF_ON}' requires '${required}'")
+      endif()
+    endforeach()
+  endif()
+endfunction()
+
+# Check if flags conflict with each other.
+function(check_conflicting_options_on)
+  cmake_parse_arguments(
+    ARG
+    ""
+    "IF_ON"
+    "CONFLICTS_WITH"
+    ${ARGN}
+  )
+
+  if(${${ARG_IF_ON}})
+    foreach(conflict ${ARG_CONFLICTS_WITH})
+      if(${${conflict}})
+        message(FATAL_ERROR "Both '${ARG_IF_ON}' and '${conflict}' can't be ON")
+      endif()
+    endforeach()
+  endif()
+endfunction()
