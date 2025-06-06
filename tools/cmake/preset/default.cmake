@@ -330,9 +330,9 @@ check_required_options_on(
 
 check_required_options_on(
   IF_ON
-    EXECUTORCH_BUILD_EXTENSION_MODULE
-  REQUIRES
     EXECUTORCH_BUILD_EXTENSION_MODULE_AS_STATIC
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_MODULE
 )
 
 check_conflicting_options_on(
