@@ -240,13 +240,6 @@ endif()
 message(STATUS "executorch: Using sources file ${EXECUTORCH_SRCS_FILE}")
 include(${EXECUTORCH_SRCS_FILE})
 
-# Detect if an iOS toolchain is set.
-if(CMAKE_TOOLCHAIN_FILE MATCHES ".*(iOS|ios\.toolchain)\.cmake$")
-  set(CMAKE_TOOLCHAIN_IOS ON)
-else()
-  set(CMAKE_TOOLCHAIN_IOS OFF)
-endif()
-
 # Detect if an Android toolchain is set.
 if(CMAKE_TOOLCHAIN_FILE MATCHES ".*android\.toolchain\.cmake$")
   set(CMAKE_TOOLCHAIN_ANDROID ON)

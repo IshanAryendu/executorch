@@ -100,6 +100,11 @@ define_overridable_option(
   BOOL OFF
 )
 define_overridable_option(
+  EXECUTORCH_BUILD_EXTENSION_MODULE_AS_STATIC
+  "Build the Module extension as a static library"
+  BOOL OFF
+)
+define_overridable_option(
   EXECUTORCH_BUILD_EXTENSION_RUNNER_UTIL
   "Build the Runner Util extension"
   BOOL OFF
@@ -316,6 +321,13 @@ check_required_options_on(
     EXECUTORCH_BUILD_TESTS
   REQUIRES
     EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_EXTENSION_MODULE
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_MODULE_AS_STATIC
 )
 
 check_conflicting_options_on(

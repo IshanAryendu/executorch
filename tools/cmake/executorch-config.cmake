@@ -108,7 +108,7 @@ foreach(lib ${lib_list})
             If needed rebuild with the proper options in CMakeLists.txt"
     )
   else()
-    if("${lib}" STREQUAL "extension_module" AND (NOT CMAKE_TOOLCHAIN_IOS))
+    if("${lib}" STREQUAL "extension_module" AND (NOT EXECUTORCH_BUILD_EXTENSION_MODULE_AS_STATIC))
       add_library(${lib} SHARED IMPORTED)
     else()
       # Building a share library on iOS requires code signing, so it's easier to

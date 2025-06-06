@@ -5,3 +5,5 @@
 # LICENSE file in the root directory of this source tree.
 
 include(${PROJECT_SOURCE_DIR}/tools/cmake/preset/apple_common.cmake)
+
+set_overridable_option(EXECUTORCH_BUILD_EXTENSION_MODULE_AS_STATIC ON)
