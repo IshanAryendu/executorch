@@ -33,6 +33,7 @@ pip-out/
 *.sw[a-z]
 *~
 .~lock.*
+*.watchman-*
 
 # Xcode
 xcuserdata/

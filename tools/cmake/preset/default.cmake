@@ -210,47 +210,30 @@ define_overridable_option(
   BOOL OFF
 )
 define_overridable_option(
+  EXECUTORCH_COREML_BUILD_EXECUTOR_RUNNER
+  "Build CoreML executor runner."
+  BOOL OFF
+)
+define_overridable_option(
   EXECUTORCH_BUILD_GFLAGS
   "Build the gflags library."
   BOOL ON
 )
 define_overridable_option(
-  EXECUTORCH_COREML_BUILD_EXECUTOR_RUNNER
-  "Build CoreML executor runner."
-  BOOL OFF
-)
-
-if(EXECUTORCH_BUILD_ARM_BAREMETAL)
-  set(_default_executorch_build_pthreadpool OFF)
-  set(_default_executorch_build_cpuinfo OFF)
-else()
-  set(_default_executorch_build_pthreadpool ON)
-  set(_default_executorch_build_cpuinfo ON)
-endif()
-define_overridable_option(
   EXECUTORCH_BUILD_PTHREADPOOL
   "Build pthreadpool library."
-  BOOL ${_default_executorch_build_pthreadpool}
+  BOOL ON
 )
 define_overridable_option(
   EXECUTORCH_BUILD_CPUINFO
   "Build cpuinfo library."
-  BOOL ${_default_executorch_build_cpuinfo}
+  BOOL ON
 )
-
-# TODO(jathu): move this to platform specific presets when created
-set(_default_executorch_build_executor_runner ON)
-if(APPLE AND "${SDK_NAME}" STREQUAL "iphoneos")
-  set(_default_executorch_build_executor_runner OFF)
-elseif(DEFINED EXECUTORCH_BUILD_PRESET_FILE)
-  set(_default_executorch_build_executor_runner OFF)
-endif()
 define_overridable_option(
   EXECUTORCH_BUILD_EXECUTOR_RUNNER
   "Build the executor_runner executable"
-  BOOL ${_default_executorch_build_executor_runner}
+  BOOL OFF
 )
-
 # NB: Enabling this will serialize execution of delegate instances Keeping this
 # OFF by default to maintain existing behavior, to be revisited.
 define_overridable_option(
@@ -277,13 +260,13 @@ define_overridable_option(
   BOOL OFF
 )
 
-# MARK: - Validations
-# At this point all the options should be configured with their final value.
+# ------------------------------------------------------------------------------
+# Validations - at this point all the options should be configured with their final value.
+# ------------------------------------------------------------------------------
 
 if(NOT EXISTS ${EXECUTORCH_PAL_DEFAULT_FILE_PATH})
   message(FATAL_ERROR "PAL default implementation (EXECUTORCH_PAL_DEFAULT=${EXECUTORCH_PAL_DEFAULT}) file not found: ${EXECUTORCH_PAL_DEFAULT_FILE_PATH}. Choices: posix, minimal, android")
 endif()
-
 
 string(TOLOWER "${EXECUTORCH_LOG_LEVEL}" _executorch_log_level_lower)
 if(_executorch_log_level_lower STREQUAL "debug")
@@ -311,5 +294,7 @@ if(EXECUTORCH_BUILD_ARM_BAREMETAL)
     message(FATAL_ERROR "Cannot enable both EXECUTORCH_BUILD_PTHREADPOOL and EXECUTORCH_BUILD_ARM_BAREMETAL")
   elseif(EXECUTORCH_BUILD_CPUINFO)
     message(FATAL_ERROR "Cannot enable both EXECUTORCH_BUILD_CPUINFO and EXECUTORCH_BUILD_ARM_BAREMETAL")
+  elseif(EXECUTORCH_BUILD_EXTENSION_DATA_LOADER)
+    message(FATAL_ERROR "Cannot enable both EXECUTORCH_BUILD_EXTENSION_DATA_LOADER and EXECUTORCH_BUILD_ARM_BAREMETAL")
   endif()
 endif()
