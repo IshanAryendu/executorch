@@ -264,6 +264,11 @@ define_overridable_option(
   "Enable weights cache to cache and manage all packed weights"
   BOOL OFF
 )
+define_overridable_option(
+  EXECUTORCH_USE_CPP_CODE_COVERAGE
+  "Build with code coverage enabled"
+  BOOL OFF
+)
 
 # ------------------------------------------------------------------------------
 # Validations - at this point all the options should be configured with their final value.
