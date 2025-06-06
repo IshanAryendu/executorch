@@ -335,8 +335,11 @@ class TestPreset(CMakeTestCase):
             
             # This should not cause an error because FEATURE_FLAG is OFF
             check_required_options_on(
-                IF_ON FEATURE_FLAG
-                REQUIRES REQUIRED_OPTION1 REQUIRED_OPTION2
+                IF_ON 
+                    FEATURE_FLAG
+                REQUIRES 
+                    REQUIRED_OPTION1 
+                    REQUIRED_OPTION2
             )
         """
 
@@ -358,8 +361,11 @@ class TestPreset(CMakeTestCase):
             
             # This should not cause an error because all required options are ON
             check_required_options_on(
-                IF_ON FEATURE_FLAG
-                REQUIRES REQUIRED_OPTION1 REQUIRED_OPTION2
+                IF_ON 
+                    FEATURE_FLAG
+                REQUIRES 
+                    REQUIRED_OPTION1 
+                    REQUIRED_OPTION2
             )
         """
 
@@ -381,8 +387,11 @@ class TestPreset(CMakeTestCase):
             
             # This should cause a fatal error
             check_required_options_on(
-                IF_ON FEATURE_FLAG
-                REQUIRES REQUIRED_OPTION1 REQUIRED_OPTION2
+                IF_ON 
+                    FEATURE_FLAG
+                REQUIRES 
+                    REQUIRED_OPTION1 
+                    REQUIRED_OPTION2
             )
         """
 
@@ -406,8 +415,11 @@ class TestPreset(CMakeTestCase):
             
             # This should cause a fatal error
             check_required_options_on(
-                IF_ON FEATURE_FLAG
-                REQUIRES REQUIRED_OPTION1 REQUIRED_OPTION2
+                IF_ON 
+                    FEATURE_FLAG
+                REQUIRES 
+                    REQUIRED_OPTION1 
+                    REQUIRED_OPTION2
             )
         """
 

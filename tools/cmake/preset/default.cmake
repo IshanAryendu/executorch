@@ -264,6 +264,60 @@ define_overridable_option(
 # Validations - at this point all the options should be configured with their final value.
 # ------------------------------------------------------------------------------
 
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_ENABLE_EVENT_TRACER
+  REQUIRES
+    EXECUTORCH_BUILD_DEVTOOLS
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_DATA_LOADER
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_EXTENSION_MODULE
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_DATA_LOADER
+    EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_KERNELS_CUSTOM
+  REQUIRES
+    EXECUTORCH_BUILD_KERNELS_OPTIMIZED
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_KERNELS_CUSTOM_AOT
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_TENSOR
+    EXECUTORCH_BUILD_KERNELS_CUSTOM
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_EXTENSION_TRAINING
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_DATA_LOADER
+    EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR
+    EXECUTORCH_BUILD_EXTENSION_MODULE
+    EXECUTORCH_BUILD_EXTENSION_TENSOR
+)
+
+check_required_options_on(
+  IF_ON
+    EXECUTORCH_BUILD_TESTS
+  REQUIRES
+    EXECUTORCH_BUILD_EXTENSION_FLAT_TENSOR
+)
+
 if(NOT EXISTS ${EXECUTORCH_PAL_DEFAULT_FILE_PATH})
   message(FATAL_ERROR "PAL default implementation (EXECUTORCH_PAL_DEFAULT=${EXECUTORCH_PAL_DEFAULT}) file not found: ${EXECUTORCH_PAL_DEFAULT_FILE_PATH}. Choices: posix, minimal, android")
 endif()
@@ -280,12 +334,6 @@ elseif(_executorch_log_level_lower STREQUAL "fatal")
 else()
   message(FATAL_ERROR "Unknown EXECUTORCH_LOG_LEVEL '${EXECUTORCH_LOG_LEVEL}'. Choices: Debug, Info, Error, Fatal")
 endif()
-
-
-check_required_options_on(
-  IF_ON EXECUTORCH_ENABLE_EVENT_TRACER
-  REQUIRES EXECUTORCH_BUILD_DEVTOOLS
-)
 
 if(EXECUTORCH_BUILD_ARM_BAREMETAL)
   if(EXECUTORCH_BUILD_PTHREADPOOL)
