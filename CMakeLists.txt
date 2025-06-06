@@ -240,16 +240,6 @@ endif()
 message(STATUS "executorch: Using sources file ${EXECUTORCH_SRCS_FILE}")
 include(${EXECUTORCH_SRCS_FILE})
 
-# Detect if an Android toolchain is set.
-if(CMAKE_TOOLCHAIN_FILE MATCHES ".*android\.toolchain\.cmake$")
-  set(CMAKE_TOOLCHAIN_ANDROID ON)
-  if(NOT ANDROID_PLATFORM)
-    set(ANDROID_PLATFORM android-30)
-  endif()
-else()
-  set(CMAKE_TOOLCHAIN_ANDROID OFF)
-endif()
-
 # Add code coverage flags to supported compilers
 if(EXECUTORCH_USE_CPP_CODE_COVERAGE)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
