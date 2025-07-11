@@ -189,3 +189,15 @@ foreach(lib ${shared_lib_list})
     target_link_options_shared_lib(${lib})
   endif()
 endforeach()
+
+if(TARGET xnnpack_backend)
+  if(TARGET kleidiai)
+    set(_deps "XNNPACK;xnnpack-microkernels-prod;kleidiai")
+  else()
+    set(_deps "XNNPACK;xnnpack-microkernels-prod")
+  endif()
+  set_target_properties(
+    xnnpack_backend PROPERTIES INTERFACE_LINK_LIBRARIES "${_deps}"
+  )
+  target_link_options_shared_lib(xnnpack_backend)
+endif()
