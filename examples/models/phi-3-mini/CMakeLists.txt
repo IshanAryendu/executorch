@@ -23,6 +23,8 @@ set(CMAKE_BUILD_TYPE Release)
 set(EXECUTORCH_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../..")
 find_package(executorch CONFIG REQUIRED)
 
+target_link_options_shared_lib(executorch)
+
 set(BUILD_TESTING OFF)
 add_subdirectory(${EXECUTORCH_ROOT}/extension/llm/runner ${CMAKE_BINARY_DIR}/../../../extension/llm/runner)
 

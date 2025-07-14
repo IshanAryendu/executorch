@@ -19,7 +19,7 @@ from executorch.backends.xnnpack.quantizer.xnnpack_quantizer import (
     XNNPACKQuantizer,
 )
 from executorch.backends.xnnpack.utils.configs import get_xnnpack_edge_compile_config
-from executorch.exir import to_edge
+from executorch.exir import to_edge_transform_and_lower
 from executorch.exir.capture._config import ExecutorchBackendConfig
 from executorch.exir.passes import MemoryPlanningPass
 from executorch.exir.passes.sym_shape_eval_pass import ConstraintBasedSymShapeEvalPass
@@ -29,6 +29,7 @@ from torchao.quantization.pt2e.quantize_pt2e import convert_pt2e, prepare_pt2e
 
 from transformers import Phi3ForCausalLM
 from transformers.cache_utils import StaticCacheConfig
+
 from transformers.integrations.executorch import TorchExportableModuleForDecoderOnlyLM
 
 
@@ -112,10 +113,11 @@ def export(args) -> None:
         )
 
     edge_config = get_xnnpack_edge_compile_config()
-    edge_manager = to_edge(
+    edge_manager = to_edge_transform_and_lower(
         exported_program,
+        partitioner=[XnnpackPartitioner()],
         compile_config=edge_config,
-        constant_methods={"get_eos_ids": [32000]},
+        constant_methods={"get_eos_ids": [32000], "use_kv_cache": True, "enable_dynamic_shape": True, "get_max_seq_len": model.config.max_position_embeddings - 1},
     )
     edge_manager = edge_manager.to_backend(XnnpackPartitioner())
     et_program = edge_manager.to_executorch(
